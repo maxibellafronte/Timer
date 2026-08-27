@@ -1,7 +1,7 @@
 // Service Worker para MIX WOD - Temporizador
 // Permite que la app funcione offline una vez instalada en el iPhone
 
-const CACHE_NAME = "mixwod-cache-v2";
+const CACHE_NAME = "mixwod-cache-v3";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
