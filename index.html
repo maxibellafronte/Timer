@@ -91,6 +91,19 @@
     font-family:'Space Grotesk'; font-weight:600; font-size:14px; cursor:pointer;
   }
 
+  /* ---------- CAMPOS NUMÉRICOS TIPEABLES ---------- */
+  .num{
+    width:100%; min-width:0; flex:1; text-align:center; background:var(--bg-raised2); color:var(--text);
+    border:1.5px solid var(--line); border-radius:12px; height:44px; padding:0 4px;
+    font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; outline:none;
+    -webkit-appearance:none; appearance:none; user-select:text; -webkit-user-select:text;
+  }
+  .num:focus{border-color:#8a8a98;}
+  .stepper{gap:8px;}
+  .stepper button{flex:0 0 44px;}
+  .dur-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .unit{color:var(--text-dim); font-size:12px; text-align:center; margin-top:6px; font-weight:600;}
+
   /* ---------- ROUND GROUPS ---------- */
   .group-card{border:1.5px solid #3a3a46; border-radius:22px; padding:12px; background:var(--bg-raised); display:flex; flex-direction:column; gap:10px;}
   .group-head{display:flex; align-items:center; justify-content:space-between; padding:2px 2px 0 6px;}
@@ -251,14 +264,24 @@
     <div class="modal-sub" id="modalSub">Configurá el bloque</div>
 
     <div class="field" id="fieldDuration">
-      <label id="durationLabel">Duración (min : seg)</label>
-      <div class="stepper">
-        <button onclick="stepVal('durMin',-1,0,180)">−</button>
-        <div class="val"><span id="durMin">5</span> min</div>
-        <button onclick="stepVal('durMin',1,0,180)">+</button>
-        <button onclick="stepVal('durSec',-5,0,55)">−</button>
-        <div class="val"><span id="durSec">0</span> seg</div>
-        <button onclick="stepVal('durSec',5,0,55)">+</button>
+      <label id="durationLabel">Duración (tocá el número para tipearlo)</label>
+      <div class="dur-grid">
+        <div class="dur-col">
+          <div class="stepper">
+            <button onclick="stepVal('durMin',-1)">−</button>
+            <input class="num" id="durMin" type="text" inputmode="numeric" pattern="[0-9]*" value="5" data-min="0" data-max="180">
+            <button onclick="stepVal('durMin',1)">+</button>
+          </div>
+          <div class="unit">minutos</div>
+        </div>
+        <div class="dur-col">
+          <div class="stepper">
+            <button onclick="stepVal('durSec',-5)">−</button>
+            <input class="num" id="durSec" type="text" inputmode="numeric" pattern="[0-9]*" value="0" data-min="0" data-max="59">
+            <button onclick="stepVal('durSec',5)">+</button>
+          </div>
+          <div class="unit">segundos</div>
+        </div>
       </div>
     </div>
 
@@ -271,11 +294,11 @@
       <div class="sub-fields" id="emomSubFields">
         <div class="field" style="flex:1">
           <label>Trabajo (seg)</label>
-          <div class="stepper"><button onclick="stepVal('emomWork',-5,5,59)">−</button><div class="val"><span id="emomWork">45</span>s</div><button onclick="stepVal('emomWork',5,5,59)">+</button></div>
+          <div class="stepper"><button onclick="stepVal('emomWork',-5)">−</button><input class="num" id="emomWork" type="text" inputmode="numeric" pattern="[0-9]*" value="45" data-min="1" data-max="300"><button onclick="stepVal('emomWork',5)">+</button></div>
         </div>
         <div class="field" style="flex:1">
           <label>Descanso (seg)</label>
-          <div class="stepper"><button onclick="stepVal('emomRest',-5,0,55)">−</button><div class="val"><span id="emomRest">15</span>s</div><button onclick="stepVal('emomRest',5,0,55)">+</button></div>
+          <div class="stepper"><button onclick="stepVal('emomRest',-5)">−</button><input class="num" id="emomRest" type="text" inputmode="numeric" pattern="[0-9]*" value="15" data-min="0" data-max="300"><button onclick="stepVal('emomRest',5)">+</button></div>
         </div>
       </div>
     </div>
@@ -283,15 +306,15 @@
     <!-- TABATA fields -->
     <div class="field" id="fieldTabataWork">
       <label>Trabajo (seg)</label>
-      <div class="stepper"><button onclick="stepVal('tabWork',-5,5,120)">−</button><div class="val"><span id="tabWork">20</span>s</div><button onclick="stepVal('tabWork',5,5,120)">+</button></div>
+      <div class="stepper"><button onclick="stepVal('tabWork',-5)">−</button><input class="num" id="tabWork" type="text" inputmode="numeric" pattern="[0-9]*" value="20" data-min="1" data-max="600"><button onclick="stepVal('tabWork',5)">+</button></div>
     </div>
     <div class="field" id="fieldTabataRest">
       <label>Descanso (seg)</label>
-      <div class="stepper"><button onclick="stepVal('tabRest',-5,0,120)">−</button><div class="val"><span id="tabRest">10</span>s</div><button onclick="stepVal('tabRest',5,0,120)">+</button></div>
+      <div class="stepper"><button onclick="stepVal('tabRest',-5)">−</button><input class="num" id="tabRest" type="text" inputmode="numeric" pattern="[0-9]*" value="10" data-min="0" data-max="600"><button onclick="stepVal('tabRest',5)">+</button></div>
     </div>
     <div class="field" id="fieldTabataRounds">
       <label>Rondas</label>
-      <div class="stepper"><button onclick="stepVal('tabRounds',-1,1,50)">−</button><div class="val"><span id="tabRounds">8</span></div><button onclick="stepVal('tabRounds',1,1,50)">+</button></div>
+      <div class="stepper"><button onclick="stepVal('tabRounds',-1)">−</button><input class="num" id="tabRounds" type="text" inputmode="numeric" pattern="[0-9]*" value="8" data-min="1" data-max="99"><button onclick="stepVal('tabRounds',1)">+</button></div>
     </div>
 
     <div class="modal-btns">
@@ -312,9 +335,9 @@
     <div class="field">
       <label>Cantidad de rondas</label>
       <div class="stepper">
-        <button onclick="stepVal('roundsCount',-1,2,50); updateRoundsPreview()">−</button>
-        <div class="val"><span id="roundsCount">4</span></div>
-        <button onclick="stepVal('roundsCount',1,2,50); updateRoundsPreview()">+</button>
+        <button onclick="stepVal('roundsCount',-1); updateRoundsPreview()">−</button>
+        <input class="num" id="roundsCount" type="text" inputmode="numeric" pattern="[0-9]*" value="4" data-min="2" data-max="50" oninput="updateRoundsPreview()">
+        <button onclick="stepVal('roundsCount',1); updateRoundsPreview()">+</button>
       </div>
     </div>
 
@@ -372,15 +395,61 @@ function fmt(sec){
   const m = Math.floor(sec/60), s = sec%60;
   return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
 }
-function stepVal(id, delta, min, max){
-  const el = document.getElementById(id);
-  let v = parseInt(el.textContent) + delta;
-  v = Math.max(min, Math.min(max, v));
-  el.textContent = v;
+/* ---------- campos numéricos: se pueden tipear o usar + / − ---------- */
+function clampNum(el, v){
+  v = Number(v);
+  if(isNaN(v)) v = +el.dataset.min;
+  return Math.max(+el.dataset.min, Math.min(+el.dataset.max, v));
 }
+function getNum(id){
+  const el = document.getElementById(id);
+  const raw = parseInt(el.value, 10);
+  return clampNum(el, isNaN(raw) ? +el.dataset.min : raw);
+}
+function setNum(id, v){
+  const el = document.getElementById(id);
+  el.value = clampNum(el, v);
+}
+function stepVal(id, delta){ setNum(id, getNum(id) + delta); }
+
+// Solo dígitos al tipear; al tocar el campo se selecciona todo; al salir se ajusta al rango permitido
+document.addEventListener('input', e=>{
+  if(e.target.classList && e.target.classList.contains('num')){
+    e.target.value = e.target.value.replace(/\D/g,'').slice(0,3);
+  }
+});
+document.addEventListener('focusin', e=>{
+  const el = e.target;
+  if(el.classList && el.classList.contains('num')){
+    setTimeout(()=>{ try{ el.select(); el.setSelectionRange(0, 99); }catch(_){} }, 0);
+  }
+});
+document.addEventListener('focusout', e=>{
+  if(e.target.classList && e.target.classList.contains('num')) setNum(e.target.id, getNum(e.target.id));
+});
+
 function toggleEmomSplit(){
   document.getElementById('emomSubFields').classList.toggle('active', document.getElementById('emomSplitToggle').checked);
 }
+
+/* ---------- último valor usado por cada tipo de bloque ---------- */
+const DEFAULTS = {
+  AMRAP:   { min:12, sec:0 },
+  FORTIME: { min:20, sec:0 },
+  REST:    { min:1,  sec:0 },
+  EMOM:    { min:8,  sec:0, split:false, work:45, rest:15 },
+  TABATA:  { work:20, rest:10, rounds:8 }
+};
+function loadLastCfg(){
+  const cfg = JSON.parse(JSON.stringify(DEFAULTS));
+  try{
+    const saved = JSON.parse(localStorage.getItem('mixwod_last') || '{}');
+    Object.keys(cfg).forEach(t=>{ if(saved[t]) Object.assign(cfg[t], saved[t]); });
+  }catch(e){}
+  return cfg;
+}
+let lastCfg = loadLastCfg();
+function saveLastCfg(){ try{ localStorage.setItem('mixwod_last', JSON.stringify(lastCfg)); }catch(e){} }
 
 /* ---------- modal open/close ---------- */
 function openConfig(type){
@@ -393,8 +462,8 @@ function openConfig(type){
   document.getElementById('fieldTabataRounds').style.display = type==='TABATA' ? 'block' : 'none';
 
   document.getElementById('durationLabel').textContent =
-    type==='EMOM' ? 'Duración total EMOM (min : seg)' :
-    type==='REST' ? 'Descanso (min : seg)' : 'Duración (min : seg)';
+    type==='EMOM' ? 'Duración total del EMOM' :
+    type==='REST' ? 'Duración del descanso' : 'Duración';
 
   document.getElementById('modalSub').textContent =
     type==='AMRAP' ? 'Máximas rondas posibles en el tiempo' :
@@ -402,19 +471,17 @@ function openConfig(type){
     type==='EMOM' ? 'Cada minuto empieza un nuevo trabajo' :
     type==='TABATA' ? 'Intervalos cortos de trabajo/descanso' : 'Pausa entre bloques';
 
-  if(type==='EMOM'){
-    document.getElementById('durMin').textContent = 8;
-    document.getElementById('durSec').textContent = 0;
-    document.getElementById('emomSplitToggle').checked = false;
-    toggleEmomSplit();
-  } else if(type==='TABATA'){
-    // no total duration field shown, uses work/rest/rounds
-  } else if(type==='REST'){
-    document.getElementById('durMin').textContent = 1;
-    document.getElementById('durSec').textContent = 0;
+  // Arranca con lo último que usaste en este tipo de bloque (o el valor por defecto la primera vez)
+  const c = lastCfg[type];
+  if(type==='TABATA'){
+    setNum('tabWork', c.work); setNum('tabRest', c.rest); setNum('tabRounds', c.rounds);
   } else {
-    document.getElementById('durMin').textContent = type==='AMRAP' ? 12 : 20;
-    document.getElementById('durSec').textContent = 0;
+    setNum('durMin', c.min); setNum('durSec', c.sec);
+  }
+  if(type==='EMOM'){
+    document.getElementById('emomSplitToggle').checked = !!c.split;
+    setNum('emomWork', c.work); setNum('emomRest', c.rest);
+    toggleEmomSplit();
   }
   document.getElementById('modalBg').classList.add('active');
 }
@@ -422,32 +489,35 @@ function closeModal(){ document.getElementById('modalBg').classList.remove('acti
 
 function confirmAddBlock(){
   const type = editingType;
-  const durMin = parseInt(document.getElementById('durMin').textContent);
-  const durSec = parseInt(document.getElementById('durSec').textContent);
-  let block = { id: Date.now()+Math.random(), type, color: COLORS[type] };
+  const block = { id: Date.now()+Math.random(), type, color: COLORS[type] };
 
   if(type==='AMRAP' || type==='FORTIME' || type==='REST'){
-    block.duration = durMin*60 + durSec;
-    if(block.duration <= 0){ closeModal(); return; }
+    const min = getNum('durMin'), sec = getNum('durSec');
+    block.duration = min*60 + sec;
+    if(block.duration <= 0){ alert('Poné una duración mayor a 0.'); return; }
+    lastCfg[type] = { min, sec };
   }
   if(type==='EMOM'){
-    const totalSec = durMin*60 + durSec;
+    const min = getNum('durMin'), sec = getNum('durSec');
+    const totalSec = min*60 + sec;
     const split = document.getElementById('emomSplitToggle').checked;
-    const work = split ? parseInt(document.getElementById('emomWork').textContent) : 60;
-    const rest = split ? parseInt(document.getElementById('emomRest').textContent) : 0;
+    const workIn = getNum('emomWork'), restIn = getNum('emomRest');
+    const work = split ? workIn : 60;
+    const rest = split ? restIn : 0;
     const cycle = work + rest;
-    if(totalSec <= 0 || cycle <= 0){ closeModal(); return; }
+    if(totalSec <= 0 || cycle <= 0){ alert('Poné una duración mayor a 0.'); return; }
     const rounds = Math.max(1, Math.round(totalSec / cycle));
     block.work = work; block.rest = rest; block.rounds = rounds;
     block.duration = rounds * cycle;
+    lastCfg.EMOM = { min, sec, split, work: workIn, rest: restIn };
   }
   if(type==='TABATA'){
-    const work = parseInt(document.getElementById('tabWork').textContent);
-    const rest = parseInt(document.getElementById('tabRest').textContent);
-    const rounds = parseInt(document.getElementById('tabRounds').textContent);
+    const work = getNum('tabWork'), rest = getNum('tabRest'), rounds = getNum('tabRounds');
     block.work = work; block.rest = rest; block.rounds = rounds;
     block.duration = rounds * (work + rest);
+    lastCfg.TABATA = { work, rest, rounds };
   }
+  saveLastCfg();
   blocks.push(block);
   renderBlocks();
   closeModal();
@@ -509,7 +579,7 @@ function openRounds(){
       <span class="pick-name">${NAMES[b.type]}</span>
       <span class="pick-detail">${detailText(b)}</span>
     </label>`).join('');
-  document.getElementById('roundsCount').textContent = 4;
+  setNum('roundsCount', 4);
   updateRoundsPreview();
   document.getElementById('roundsModalBg').classList.add('active');
 }
@@ -519,7 +589,7 @@ function pickedIdx(){
 }
 function updateRoundsPreview(){
   const idx = pickedIdx();
-  const rounds = parseInt(document.getElementById('roundsCount').textContent);
+  const rounds = getNum('roundsCount');
   const per = idx.reduce((a,i)=>a+blocks[i].duration, 0);
   document.getElementById('roundsPreview').textContent =
     idx.length ? `Por ronda: ${fmt(per)} · Total: ${fmt(per*rounds)}` : 'Elegí al menos un bloque';
@@ -530,7 +600,7 @@ function confirmRounds(){
   for(let k=1; k<idx.length; k++){
     if(idx[k] !== idx[k-1]+1){ alert('Los bloques elegidos tienen que estar seguidos en la lista (sin saltear ninguno).'); return; }
   }
-  const rounds = parseInt(document.getElementById('roundsCount').textContent);
+  const rounds = getNum('roundsCount');
   const children = blocks.splice(idx[0], idx.length);
   const per = children.reduce((a,c)=>a+c.duration, 0);
   blocks.splice(idx[0], 0, { id: Date.now()+Math.random(), type:'ROUNDS', color:COLORS.ROUNDS, rounds, children, duration: per*rounds });
@@ -601,19 +671,39 @@ renderBlocks();
 
 /* ================= AUDIO (beeps, no files needed) ================= */
 let actx;
-function beep(freq=880, dur=0.12, vol=0.35){
+// Onda cuadrada (más penetrante que la senoidal) y volumen alto para que se escuche de lejos
+const SND = {
+  warn:      { f:800,  d:0.30, v:0.8 },   // faltan 10 segundos
+  countdown: { f:1000, d:0.22, v:0.9 },   // 3, 2 y 1 (al final de cada bloque y de cada descanso)
+  go:        { f:1400, d:0.60, v:0.9 },   // empieza un bloque o un descanso
+  done1:     { f:1200, d:0.35, v:0.9 },   // fin del WOD
+  done2:     { f:1600, d:0.70, v:0.9 }
+};
+function ensureAudio(){
+  if(!actx){
+    // iOS: hace que suene aunque el interruptor de silencio esté activado
+    try{ if(navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){}
+    actx = new (window.AudioContext||window.webkitAudioContext)();
+  }
+  if(actx.state !== 'running') actx.resume();   // iOS lo suspende al minimizar la app
+}
+function beep(freq=1000, dur=0.2, vol=0.8){
   try{
-    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
-    if(actx.state === 'suspended') actx.resume();   // iOS lo suspende al minimizar la app
+    ensureAudio();
+    const t = actx.currentTime;
     const o = actx.createOscillator(), g = actx.createGain();
-    o.type='sine'; o.frequency.value=freq;
-    g.gain.value=vol;
+    o.type = 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t+0.005);
+    g.gain.setValueAtTime(vol, t + Math.max(0.01, dur-0.04));
+    g.gain.linearRampToValueAtTime(0.0001, t+dur);
     o.connect(g); g.connect(actx.destination);
-    o.start();
-    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+dur);
-    o.stop(actx.currentTime+dur+0.02);
+    o.start(t); o.stop(t+dur+0.02);
   }catch(e){}
 }
+function play(s){ beep(s.f, s.d, s.v); }
+// Cualquier toque reactiva el audio si el sistema lo había suspendido
+['touchend','click'].forEach(ev=> document.addEventListener(ev, ()=>{ if(actx && actx.state!=='running') actx.resume(); }, {passive:true}));
 function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
 
 /* ================= PLAYER ENGINE ================= */
@@ -691,8 +781,8 @@ function enterSegment(i){
   const next = segments[i+1];
   document.getElementById('nextUp').innerHTML = next ? `Siguiente: <b>${next.label}</b> ${next.roundInfo?('· '+next.roundInfo):''}` : 'Último bloque';
   updateProgress(0);
-  vibrate(60);
-  beep(660,0.15);
+  vibrate(80);
+  play(SND.go);
   applyLandscapeBg(s.colorHex || s.color);
 }
 
@@ -735,9 +825,9 @@ function tick(){
   const left = Math.ceil(segments[segIndex].duration - elapsed);
   if(elapsed >= 1){
     if(left === 10 && lastBeepSec !== 10){
-      lastBeepSec = 10; beep(740,0.12,0.32); vibrate(40);
+      lastBeepSec = 10; play(SND.warn); vibrate(60);
     } else if(left <= 3 && left >= 1 && lastBeepSec !== left){
-      lastBeepSec = left; beep(880,0.09,0.3); vibrate(30);
+      lastBeepSec = left; play(SND.countdown); vibrate(50);
     }
   }
   document.getElementById('bigClock').textContent = fmt(Math.floor(elapsed));
@@ -756,7 +846,7 @@ function nextSegment(){
 }
 function finishWorkout(){
   clearInterval(timerHandle);
-  beep(990,0.2); setTimeout(()=>beep(1200,0.25),180);
+  play(SND.done1); setTimeout(()=>play(SND.done2), 380);
   vibrate([100,60,100,60,200]);
   document.getElementById('doneSummary').textContent = blocks.length+' bloques completados · '+fmt(blocks.reduce((a,b)=>a+b.duration,0))+' totales';
   showScreen('done');
@@ -806,6 +896,7 @@ function showScreen(id){
 let wakeLock = null;
 document.addEventListener('visibilitychange', async ()=>{
   if(document.visibilityState==='visible' && document.getElementById('player').classList.contains('active')){
+    if(actx && actx.state!=='running') actx.resume();
     tick();   // al volver a la app, recalcula el tiempo real transcurrido enseguida
     try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
   }
