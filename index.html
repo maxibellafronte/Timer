@@ -91,6 +91,31 @@
     font-family:'Space Grotesk'; font-weight:600; font-size:14px; cursor:pointer;
   }
 
+  /* ---------- ROUND GROUPS ---------- */
+  .group-card{border:1.5px solid #3a3a46; border-radius:22px; padding:12px; background:var(--bg-raised); display:flex; flex-direction:column; gap:10px;}
+  .group-head{display:flex; align-items:center; justify-content:space-between; padding:2px 2px 0 6px;}
+  .group-head .info{display:flex; flex-direction:column; gap:2px;}
+  .group-head .type{font-size:17px; font-weight:700;}
+  .group-head .detail{font-size:12.5px; color:var(--text-dim); font-weight:600;}
+  .group-head .ctrls{display:flex; gap:6px;}
+  .group-head .ctrls button, .rounds-step button{
+    border:none; background:var(--bg-raised2); color:var(--text); width:30px; height:30px;
+    border-radius:9px; font-size:15px; font-weight:800; cursor:pointer; line-height:1;
+  }
+  .group-kids{display:flex; flex-direction:column; gap:6px;}
+  .kid{display:flex; justify-content:space-between; align-items:center; gap:10px; border-radius:12px; padding:9px 14px; color:#0a0a0d; font-weight:700; font-size:13.5px;}
+  .kid span:last-child{font-weight:600; opacity:0.75; font-size:12.5px; text-align:right;}
+  .group-foot{display:flex; align-items:center; justify-content:space-between; padding:0 2px;}
+  .rounds-step{display:flex; align-items:center; gap:10px; font-weight:600; font-size:14px;}
+  .ungroup{background:none; border:none; color:var(--text-dim); font-family:'Space Grotesk'; font-weight:600; font-size:13px; cursor:pointer; padding:6px 4px;}
+  .add-btn.wide{grid-column:1 / -1; background:transparent; border:1.5px solid #3a3a46; color:var(--text);}
+  .pick-row{display:flex; align-items:center; gap:12px; background:var(--bg-raised2); border-radius:14px; padding:12px 14px; margin-bottom:8px; cursor:pointer;}
+  .pick-row input{width:20px; height:20px; accent-color:#f5f5f7; flex:0 0 auto;}
+  .pick-row .dot{width:12px; height:12px; border-radius:50%; background:var(--c); flex:0 0 auto;}
+  .pick-name{font-weight:700; font-size:14px; flex:1;}
+  .pick-detail{color:var(--text-dim); font-size:12.5px; font-weight:600; text-align:right;}
+  .rounds-preview{background:var(--bg-raised2); border-radius:14px; padding:12px 14px; font-size:14px; font-weight:600; margin-bottom:16px; text-align:center;}
+
   /* saved workouts */
   .saved-row{display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:18px;}
   .saved-chip{
@@ -210,6 +235,7 @@
     <button class="add-btn" style="background:var(--tabata)" onclick="openConfig('TABATA')">TABATA</button>
     <button class="add-btn rest" style="background:var(--rest)" onclick="openConfig('REST')">DESCANSO</button>
     <button class="add-btn" style="background:var(--bg-raised2); color:var(--text)" onclick="saveWorkout()">💾 GUARDAR</button>
+    <button class="add-btn wide" onclick="openRounds()">🔁 REPETIR BLOQUES EN RONDAS</button>
   </div>
 
   <div class="start-bar">
@@ -275,6 +301,32 @@
   </div>
 </div>
 
+<!-- ============ ROUNDS MODAL ============ -->
+<div class="modal-bg" id="roundsModalBg">
+  <div class="modal">
+    <h2>REPETIR EN RONDAS</h2>
+    <div class="modal-sub">Marcá los bloques seguidos que forman una ronda y cuántas veces se repite</div>
+
+    <div id="roundsPick"></div>
+
+    <div class="field">
+      <label>Cantidad de rondas</label>
+      <div class="stepper">
+        <button onclick="stepVal('roundsCount',-1,2,50); updateRoundsPreview()">−</button>
+        <div class="val"><span id="roundsCount">4</span></div>
+        <button onclick="stepVal('roundsCount',1,2,50); updateRoundsPreview()">+</button>
+      </div>
+    </div>
+
+    <div class="rounds-preview" id="roundsPreview"></div>
+
+    <div class="modal-btns">
+      <button class="btn-ghost" style="flex:1" onclick="closeRounds()">Cancelar</button>
+      <button class="btn-primary" onclick="confirmRounds()">CREAR RONDAS</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ PLAYER SCREEN ============ -->
 <div id="player" class="screen">
   <div class="player-top">
@@ -309,8 +361,8 @@
 
 <script>
 /* ================= DATA ================= */
-const COLORS = { AMRAP:'#e0954a', FORTIME:'#5468f0', EMOM:'#9014d9', TABATA:'#4fbf8d', REST:'#4a4e58' };
-const NAMES  = { AMRAP:'AMRAP', FORTIME:'FOR TIME', EMOM:'EMOM', TABATA:'TABATA', REST:'DESCANSO' };
+const COLORS = { AMRAP:'#e0954a', FORTIME:'#5468f0', EMOM:'#9014d9', TABATA:'#4fbf8d', REST:'#4a4e58', ROUNDS:'#f5f5f7' };
+const NAMES  = { AMRAP:'AMRAP', FORTIME:'FOR TIME', EMOM:'EMOM', TABATA:'TABATA', REST:'DESCANSO', ROUNDS:'RONDAS' };
 let blocks = [];       // list of configured blocks (builder)
 let editingType = null;
 
@@ -407,10 +459,90 @@ function detailText(b){
   if(b.type==='TABATA') return `${b.rounds}x — ${b.work}s / ${b.rest}s`;
   return fmt(b.duration);
 }
+function groupCard(g, i){
+  const per = g.children.reduce((a,c)=>a+c.duration, 0);
+  const div = document.createElement('div');
+  div.className = 'group-card';
+  div.innerHTML = `
+    <div class="group-head">
+      <div class="info">
+        <div class="type">🔁 ${g.rounds} RONDAS</div>
+        <div class="detail">${fmt(per)} por ronda · ${fmt(per*g.rounds)} total</div>
+      </div>
+      <div class="ctrls">
+        <button onclick="moveBlock(${i},-1)">↑</button>
+        <button onclick="moveBlock(${i},1)">↓</button>
+        <button onclick="removeBlock(${i})">✕</button>
+      </div>
+    </div>
+    <div class="group-kids">
+      ${g.children.map(c=>`<div class="kid" style="background:${c.color}"><span>${NAMES[c.type]}</span><span>${detailText(c)}</span></div>`).join('')}
+    </div>
+    <div class="group-foot">
+      <div class="rounds-step">
+        <button onclick="changeRounds(${i},-1)">−</button><span>${g.rounds} rondas</span><button onclick="changeRounds(${i},1)">+</button>
+      </div>
+      <button class="ungroup" onclick="ungroup(${i})">Desagrupar</button>
+    </div>`;
+  return div;
+}
+function changeRounds(i, d){
+  const g = blocks[i];
+  g.rounds = Math.max(2, Math.min(50, g.rounds + d));
+  g.duration = g.children.reduce((a,c)=>a+c.duration, 0) * g.rounds;
+  renderBlocks();
+}
+function ungroup(i){
+  const g = blocks[i];
+  blocks.splice(i, 1, ...g.children);
+  renderBlocks();
+}
+
+/* ---------- crear rondas ---------- */
+function openRounds(){
+  const pickable = blocks.map((b,i)=>({b,i})).filter(x=>x.b.type!=='ROUNDS');
+  if(!pickable.length){ alert('Primero agregá los bloques que querés repetir (ej. 6 min ON, 1 min OFF...).'); return; }
+  document.getElementById('roundsPick').innerHTML = pickable.map(({b,i})=>`
+    <label class="pick-row" style="--c:${b.color}">
+      <input type="checkbox" value="${i}" checked onchange="updateRoundsPreview()">
+      <span class="dot"></span>
+      <span class="pick-name">${NAMES[b.type]}</span>
+      <span class="pick-detail">${detailText(b)}</span>
+    </label>`).join('');
+  document.getElementById('roundsCount').textContent = 4;
+  updateRoundsPreview();
+  document.getElementById('roundsModalBg').classList.add('active');
+}
+function closeRounds(){ document.getElementById('roundsModalBg').classList.remove('active'); }
+function pickedIdx(){
+  return [...document.querySelectorAll('#roundsPick input:checked')].map(x=>parseInt(x.value)).sort((a,b)=>a-b);
+}
+function updateRoundsPreview(){
+  const idx = pickedIdx();
+  const rounds = parseInt(document.getElementById('roundsCount').textContent);
+  const per = idx.reduce((a,i)=>a+blocks[i].duration, 0);
+  document.getElementById('roundsPreview').textContent =
+    idx.length ? `Por ronda: ${fmt(per)} · Total: ${fmt(per*rounds)}` : 'Elegí al menos un bloque';
+}
+function confirmRounds(){
+  const idx = pickedIdx();
+  if(!idx.length){ alert('Elegí al menos un bloque.'); return; }
+  for(let k=1; k<idx.length; k++){
+    if(idx[k] !== idx[k-1]+1){ alert('Los bloques elegidos tienen que estar seguidos en la lista (sin saltear ninguno).'); return; }
+  }
+  const rounds = parseInt(document.getElementById('roundsCount').textContent);
+  const children = blocks.splice(idx[0], idx.length);
+  const per = children.reduce((a,c)=>a+c.duration, 0);
+  blocks.splice(idx[0], 0, { id: Date.now()+Math.random(), type:'ROUNDS', color:COLORS.ROUNDS, rounds, children, duration: per*rounds });
+  renderBlocks();
+  closeRounds();
+}
+
 function renderBlocks(){
   const list = document.getElementById('blockList');
   list.innerHTML = '';
   blocks.forEach((b, i)=>{
+    if(b.type==='ROUNDS'){ list.appendChild(groupCard(b, i)); return; }
     const div = document.createElement('div');
     div.className = 'block-card';
     div.style.background = b.color;
@@ -472,6 +604,7 @@ let actx;
 function beep(freq=880, dur=0.12, vol=0.35){
   try{
     actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state === 'suspended') actx.resume();   // iOS lo suspende al minimizar la app
     const o = actx.createOscillator(), g = actx.createGain();
     o.type='sine'; o.frequency.value=freq;
     g.gain.value=vol;
@@ -484,32 +617,50 @@ function beep(freq=880, dur=0.12, vol=0.35){
 function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
 
 /* ================= PLAYER ENGINE ================= */
-let segments = [];   // flattened list of {type, phase, label, color, duration, round, totalRounds}
+// El tiempo se calcula con el reloj real (Date.now) y no contando "ticks":
+// si iOS congela la app en segundo plano, al volver se recalcula todo desde la hora real.
+let segments = [];   // lista aplanada de segmentos {type, label, color, duration, roundInfo}
 let segIndex = 0;
-let remaining = 0;
+let segStart = 0;    // momento (ms) en que arrancó el segmento actual
+let pausedAt = 0;    // momento (ms) en que se pausó
 let timerHandle = null;
 let paused = false;
 let lastBeepSec = null;
 
+function ri(prefix, own){ return [prefix, own].filter(Boolean).join(' · '); }
+
+function blockSegments(b, prefix){
+  const segs = [];
+  if(b.type==='AMRAP'){
+    segs.push({type:'AMRAP', label:'AMRAP', color:b.color, duration:b.duration, roundInfo:ri(prefix,'')});
+  } else if(b.type==='FORTIME'){
+    segs.push({type:'FORTIME', label:'FOR TIME', color:b.color, duration:b.duration, roundInfo:ri(prefix,'Tope de tiempo')});
+  } else if(b.type==='REST'){
+    segs.push({type:'REST', label:'DESCANSO', color:b.color, duration:b.duration, roundInfo:ri(prefix,'')});
+  } else if(b.type==='EMOM'){
+    for(let r=1;r<=b.rounds;r++){
+      segs.push({type:'EMOM', label:'EMOM', color:b.color, duration:b.work, roundInfo:ri(prefix,`Min ${r} / ${b.rounds} · Trabajo`)});
+      if(b.rest>0) segs.push({type:'EMOM_REST', label:'DESCANSO', color:'var(--rest)', colorHex:'#4a4e58', duration:b.rest, roundInfo:ri(prefix,`Min ${r} / ${b.rounds} · Descanso`)});
+    }
+  } else if(b.type==='TABATA'){
+    const w = prefix ? 'Intervalo' : 'Ronda';   // dentro de un grupo de rondas, evita confundir "Ronda" con "Ronda"
+    for(let r=1;r<=b.rounds;r++){
+      segs.push({type:'TABATA', label:'TABATA', color:b.color, duration:b.work, roundInfo:ri(prefix,`${w} ${r} / ${b.rounds} · Trabajo`)});
+      segs.push({type:'TABATA_REST', label:'DESCANSO', color:'#4a4e58', duration:b.rest, roundInfo:ri(prefix,`${w} ${r} / ${b.rounds} · Descanso`)});
+    }
+  }
+  return segs;
+}
+
 function buildSegments(){
   const segs = [];
   blocks.forEach(b=>{
-    if(b.type==='AMRAP'){
-      segs.push({type:'AMRAP', label:'AMRAP', color:b.color, duration:b.duration, roundInfo:''});
-    } else if(b.type==='FORTIME'){
-      segs.push({type:'FORTIME', label:'FOR TIME', color:b.color, duration:b.duration, roundInfo:'Tope de tiempo'});
-    } else if(b.type==='REST'){
-      segs.push({type:'REST', label:'DESCANSO', color:b.color, duration:b.duration, roundInfo:''});
-    } else if(b.type==='EMOM'){
-      for(let r=1;r<=b.rounds;r++){
-        segs.push({type:'EMOM', label:'EMOM', color:b.color, duration:b.work, roundInfo:`Min ${r} / ${b.rounds} · Trabajo`});
-        if(b.rest>0) segs.push({type:'EMOM_REST', label:'DESCANSO', color:'var(--rest)', colorHex:'#4a4e58', duration:b.rest, roundInfo:`Min ${r} / ${b.rounds} · Descanso`});
+    if(b.type==='ROUNDS'){
+      for(let r=1; r<=b.rounds; r++){
+        b.children.forEach(c=> segs.push(...blockSegments(c, `Ronda ${r}/${b.rounds}`)));
       }
-    } else if(b.type==='TABATA'){
-      for(let r=1;r<=b.rounds;r++){
-        segs.push({type:'TABATA', label:'TABATA', color:b.color, duration:b.work, roundInfo:`Ronda ${r} / ${b.rounds} · Trabajo`});
-        segs.push({type:'TABATA_REST', label:'DESCANSO', color:'#4a4e58', duration:b.rest, roundInfo:`Ronda ${r} / ${b.rounds} · Descanso`});
-      }
+    } else {
+      segs.push(...blockSegments(b, ''));
     }
   });
   return segs.filter(s=>s.duration>0);
@@ -521,14 +672,15 @@ function startWorkout(){
   segIndex = 0;
   showScreen('player');
   document.getElementById('workoutName').textContent = blocks.length+' bloques · '+fmt(blocks.reduce((a,b)=>a+b.duration,0));
-  loadSegment(0);
   paused = false;
   document.getElementById('pauseBtn').textContent = 'PAUSAR';
+  segStart = Date.now();
+  enterSegment(0);
   runTimer();
 }
-function loadSegment(i){
+
+function enterSegment(i){
   const s = segments[i];
-  remaining = s.duration;
   lastBeepSec = null;
   const pill = document.getElementById('phasePill');
   pill.textContent = s.label;
@@ -538,11 +690,12 @@ function loadSegment(i){
   document.getElementById('bigClock').style.color = '#f5f5f7';
   const next = segments[i+1];
   document.getElementById('nextUp').innerHTML = next ? `Siguiente: <b>${next.label}</b> ${next.roundInfo?('· '+next.roundInfo):''}` : 'Último bloque';
-  updateProgress();
+  updateProgress(0);
   vibrate(60);
   beep(660,0.15);
   applyLandscapeBg(s.colorHex || s.color);
 }
+
 function applyLandscapeBg(color){
   document.getElementById('player').style.background = window.matchMedia('(orientation: landscape)').matches ? color : 'var(--bg)';
   document.body.style.background = window.matchMedia('(orientation: landscape)').matches ? color : 'var(--bg)';
@@ -551,37 +704,52 @@ window.addEventListener('resize', ()=>{
   if(segments[segIndex]) applyLandscapeBg(segments[segIndex].colorHex || segments[segIndex].color);
 });
 
-function updateProgress(){
+function updateProgress(segElapsed){
   const totalDur = segments.reduce((a,s)=>a+s.duration,0);
-  const elapsed = segments.slice(0,segIndex).reduce((a,s)=>a+s.duration,0) + (segments[segIndex].duration - remaining);
-  document.getElementById('progressFill').style.width = (100*elapsed/totalDur)+'%';
-  const totalRemaining = totalDur - elapsed;
-  document.getElementById('totalInfo').innerHTML = `Total restante: <b>${fmt(totalRemaining)}</b> / ${fmt(totalDur)}`;
+  const before = segments.slice(0,segIndex).reduce((a,s)=>a+s.duration,0);
+  document.getElementById('progressFill').style.width = (100*(before+segElapsed)/totalDur)+'%';
+  document.getElementById('totalInfo').innerHTML = `Total restante: <b>${fmt(totalDur - before - Math.floor(segElapsed))}</b> / ${fmt(totalDur)}`;
 }
 
 function runTimer(){
   clearInterval(timerHandle);
-  timerHandle = setInterval(()=>{
-    if(paused) return;
-    remaining -= 1;
-    if(remaining === 10 && lastBeepSec !== 10){
-      lastBeepSec = 10; beep(740,0.12,0.32); vibrate(40);
-    }
-    if(remaining <= 3 && remaining >= 1 && lastBeepSec !== remaining){
-      lastBeepSec = remaining; beep(880,0.09,0.3); vibrate(30);
-    }
-    if(remaining <= 0){
-      nextSegment();
-      return;
-    }
-    document.getElementById('bigClock').textContent = fmt(segments[segIndex].duration - remaining);
-    updateProgress();
-  }, 1000);
+  timerHandle = setInterval(tick, 200);
 }
+
+function tick(){
+  if(paused || !segments.length) return;
+  const now = Date.now();
+  let elapsed = (now - segStart)/1000;
+  let advanced = false;
+
+  // Si pasó más tiempo que el segmento actual (p. ej. la app estuvo minimizada), salta los que correspondan
+  while(elapsed >= segments[segIndex].duration){
+    if(segIndex >= segments.length-1){ finishWorkout(); return; }
+    segStart += segments[segIndex].duration*1000;
+    segIndex++;
+    elapsed = (now - segStart)/1000;
+    advanced = true;
+  }
+  if(advanced) enterSegment(segIndex);
+
+  const left = Math.ceil(segments[segIndex].duration - elapsed);
+  if(elapsed >= 1){
+    if(left === 10 && lastBeepSec !== 10){
+      lastBeepSec = 10; beep(740,0.12,0.32); vibrate(40);
+    } else if(left <= 3 && left >= 1 && lastBeepSec !== left){
+      lastBeepSec = left; beep(880,0.09,0.3); vibrate(30);
+    }
+  }
+  document.getElementById('bigClock').textContent = fmt(Math.floor(elapsed));
+  updateProgress(elapsed);
+}
+
 function nextSegment(){
   if(segIndex < segments.length-1){
     segIndex++;
-    loadSegment(segIndex);
+    segStart = Date.now();
+    if(paused) pausedAt = segStart;
+    enterSegment(segIndex);
   } else {
     finishWorkout();
   }
@@ -596,12 +764,21 @@ function finishWorkout(){
   document.body.style.background = 'var(--bg)';
 }
 function togglePause(){
-  paused = !paused;
+  if(!paused){
+    paused = true;
+    pausedAt = Date.now();
+  } else {
+    paused = false;
+    segStart += Date.now() - pausedAt;   // el tiempo en pausa no cuenta
+  }
   document.getElementById('pauseBtn').textContent = paused ? 'CONTINUAR' : 'PAUSAR';
 }
 function skipFwd(){ nextSegment(); }
 function skipBack(){
-  if(segIndex>0){ segIndex--; loadSegment(segIndex); } else { loadSegment(0); }
+  if(segIndex>0) segIndex--;
+  segStart = Date.now();
+  if(paused) pausedAt = segStart;
+  enterSegment(segIndex);
 }
 function exitPlayer(){
   if(!confirm('¿Salir del temporizador?')) return;
@@ -629,6 +806,7 @@ function showScreen(id){
 let wakeLock = null;
 document.addEventListener('visibilitychange', async ()=>{
   if(document.visibilityState==='visible' && document.getElementById('player').classList.contains('active')){
+    tick();   // al volver a la app, recalcula el tiempo real transcurrido enseguida
     try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
   }
 });
