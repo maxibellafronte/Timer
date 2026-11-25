@@ -191,7 +191,9 @@
     letter-spacing:1px; cursor:pointer; background:var(--bg-raised2); color:var(--text);
   }
   .ctrl-btn.main{background:var(--text); color:#0a0a0d;}
-  .ctrl-btn.skip{flex:0 0 74px;}
+  .ctrl-btn.skip{flex:0 0 58px;}
+  .ctrl-btn{min-width:0; white-space:nowrap; padding:18px 6px; font-size:clamp(15px,4.6vw,20px);}
+  .ctrl-btn.stop{background:rgba(229,72,77,0.16); color:#ff6b6b;}
 
   /* ---------- LANDSCAPE GYM-CLOCK MODE ---------- */
   @media (orientation:landscape){
@@ -214,6 +216,7 @@
     #player.show-ctrls .player-controls{opacity:1; pointer-events:auto; padding:16px 20px;}
     #player.show-ctrls .ctrl-btn{background:rgba(10,10,13,0.35); color:#fff; backdrop-filter:blur(6px);}
     #player.show-ctrls .ctrl-btn.main{background:rgba(10,10,13,0.55); color:#fff;}
+    #player.show-ctrls .ctrl-btn.stop{background:rgba(110,15,15,0.6); color:#fff;}
   }
 
   /* done screen */
@@ -369,6 +372,7 @@
   <div class="player-controls">
     <button class="ctrl-btn skip" onclick="skipBack()">⏮</button>
     <button class="ctrl-btn main" id="pauseBtn" onclick="togglePause()">PAUSAR</button>
+    <button class="ctrl-btn stop" id="stopBtn" onclick="exitPlayer()">FINALIZAR</button>
     <button class="ctrl-btn skip" onclick="skipFwd()">⏭</button>
   </div>
 </div>
@@ -715,6 +719,7 @@ let segStart = 0;    // momento (ms) en que arrancó el segmento actual
 let pausedAt = 0;    // momento (ms) en que se pausó
 let timerHandle = null;
 let paused = false;
+let workoutActive = false;   // true mientras hay un entrenamiento corriendo
 let lastBeepSec = null;
 
 function ri(prefix, own){ return [prefix, own].filter(Boolean).join(' · '); }
@@ -760,6 +765,7 @@ function startWorkout(){
   segments = buildSegments();
   if(!segments.length) return;
   segIndex = 0;
+  workoutActive = true;
   showScreen('player');
   document.getElementById('workoutName').textContent = blocks.length+' bloques · '+fmt(blocks.reduce((a,b)=>a+b.duration,0));
   paused = false;
@@ -807,7 +813,7 @@ function runTimer(){
 }
 
 function tick(){
-  if(paused || !segments.length) return;
+  if(paused || !workoutActive || !segments.length) return;
   const now = Date.now();
   let elapsed = (now - segStart)/1000;
   let advanced = false;
@@ -845,6 +851,7 @@ function nextSegment(){
   }
 }
 function finishWorkout(){
+  workoutActive = false;
   clearInterval(timerHandle);
   play(SND.done1); setTimeout(()=>play(SND.done2), 380);
   vibrate([100,60,100,60,200]);
@@ -871,8 +878,10 @@ function skipBack(){
   enterSegment(segIndex);
 }
 function exitPlayer(){
-  if(!confirm('¿Salir del temporizador?')) return;
+  if(!confirm('¿Finalizar el entrenamiento y volver a la carga del WOD?')) return;
+  workoutActive = false;
   clearInterval(timerHandle);
+  try{ if(wakeLock){ wakeLock.release(); wakeLock = null; } }catch(e){}   // deja de mantener la pantalla encendida
   document.getElementById('player').style.background = 'var(--bg)';
   document.body.style.background = 'var(--bg)';
   showScreen('builder');
